@@ -1,6 +1,7 @@
 {
   "name": "directus-migrate",
-  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
   "bin": {
     "directus-migrate": "./dist/index.js"
   },
