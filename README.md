@@ -24,4 +24,4 @@ Example config:
 
 - Only migrates the data models for `collections`, `fields`, and `relations`. No items (data) is migrated.
 - Does not remove missing data models.
-- Use with caution!
+- Use with caution, backup your data before attempting this.
