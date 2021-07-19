@@ -1,5 +1,9 @@
 # directus-migrate
 
+> - Only migrates the data models for `collections`, `fields`, and `relations`. No items (data) is migrated.
+> - Does not remove data models.
+> - Use with caution, backup your data before attempting this.
+
 Usage:
 
 ```sh
@@ -21,7 +25,3 @@ Example config:
   }
 }
 ```
-
-- Only migrates the data models for `collections`, `fields`, and `relations`. No items (data) is migrated.
-- Does not remove missing data models.
-- Use with caution, backup your data before attempting this.
