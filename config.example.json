@@ -1,0 +1,11 @@
+{
+  "dry": false,
+  "source": {
+    "url": "",
+    "token": ""
+  },
+  "target": {
+    "url": "",
+    "token": ""
+  }
+}
