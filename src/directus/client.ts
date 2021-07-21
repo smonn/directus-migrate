@@ -24,7 +24,8 @@ export class DirectusClient {
   }
 
   async getCollections() {
-    return await this.http("collections")
+    return await this.http
+      .get("collections")
       .json<DirectusResponse<DirectusCollection[]>>()
       .then(({ data }) =>
         data.filter(
@@ -33,20 +34,48 @@ export class DirectusClient {
             c.collection !== "languages"
         )
       )
-      .catch(() => []);
+      .catch((err) => {
+        console.error("[ERROR]", "GET /collections");
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        return [];
+      });
   }
 
   async getCollection(collection: string) {
-    return await this.http(`collections/${collection}`)
+    return await this.http
+      .get(`collections/${collection}`)
       .json<DirectusResponse<DirectusCollection>>()
       .then(({ data }) => data)
-      .catch(() => null);
+      .catch((err) => {
+        console.error("[ERROR]", `GET /collections/${collection}`);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async createCollection(collection: DirectusCollection) {
-    return await this.http.post("collections", {
-      json: collection,
-    });
+    return await this.http
+      .post("collections", {
+        json: collection,
+      })
+      .json()
+      .catch((err) => {
+        console.error("[ERROR]", "POST /collections", collection);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async updateCollection(collection: DirectusCollection) {
@@ -56,11 +85,35 @@ export class DirectusClient {
           meta: collection.meta,
         },
       })
-      .json();
+      .json()
+      .catch((err) => {
+        console.error(
+          "[ERROR]",
+          `PATCH /collections/${collection.collection}`,
+          { meta: collection.meta }
+        );
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async deleteCollection(collection: string) {
-    return await this.http.delete(`collections/${collection}`);
+    return await this.http
+      .delete(`collections/${collection}`)
+      .json()
+      .catch((err) => {
+        console.error("[ERROR]", `DELETE /collections/${collection}`);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async getFields(collection: string, isPrimaryKey = false) {
@@ -68,56 +121,145 @@ export class DirectusClient {
       .get(`fields/${collection}`)
       .json<DirectusResponse<DirectusField[]>>()
       .then((res) =>
-        res.data.filter((f) => !!f.schema?.is_primary_key === isPrimaryKey)
+        res.data
+          .filter((f) => !!f.schema?.is_primary_key === isPrimaryKey)
+          .map((f) => {
+            delete f.meta?.id;
+            return f;
+          })
       )
-      .catch(() => []);
+      .catch((err) => {
+        console.error("[ERROR]", `GET /fields/${collection}`);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        return [];
+      });
   }
 
   async createField(collection: string, field: DirectusField) {
+    delete field.meta?.id;
     return await this.http
       .post(`fields/${collection}`, {
         json: field,
       })
-      .json();
+      .json()
+      .catch((err) => {
+        console.error("[ERROR]", `POST /fields/${collection}`, field);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async updateField(collection: string, field: DirectusField) {
+    delete field.meta?.id;
     return await this.http
-      .patch(`fields/${collection}/${field}`, {
+      .patch(`fields/${collection}/${field.field}`, {
         json: {
+          collection: field.collection,
+          field: field.field,
+          type: field.type,
           meta: field.meta,
         },
       })
-      .json();
+      .json()
+      .catch((err) => {
+        console.error("[ERROR]", `POST /fields/${collection}/${field.field}`, {
+          meta: field.meta,
+        });
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async deleteField(collection: string, field: string) {
-    return await this.http.delete(`fields/${collection}/${field}`).json();
+    return await this.http
+      .delete(`fields/${collection}/${field}`)
+      .json()
+      .catch((err) => {
+        console.error("[ERROR]", `DELETE /fields/${collection}/${field}`);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async getRelations(collection: string) {
     return await this.http
       .get(`relations/${collection}`)
       .json<DirectusResponse<DirectusRelation[]>>()
-      .then(({ data }) => data)
-      .catch(() => []);
+      .then(({ data }) =>
+        data.map((r) => {
+          delete r.meta?.id;
+          return r;
+        })
+      )
+      .catch((err) => {
+        console.error("[ERROR]", `GET /relations/${collection}`);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        return [];
+      });
   }
 
   async createRelation(collection: string, relation: DirectusRelation) {
+    delete relation.meta?.id;
     return await this.http
       .post(`relations`, {
         json: relation,
       })
-      .json();
+      .json()
+      .catch((err) => {
+        console.error("[ERROR]", "POST /relations", relation);
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 
   async updateRelation(collection: string, relation: DirectusRelation) {
+    delete relation.meta?.id;
     return await this.http
       .patch(`relations/${collection}/${relation.field}`, {
         json: {
+          collection: relation.collection,
+          field: relation.field,
+          related_collection: relation.related_collection,
           meta: relation.meta,
         },
       })
-      .json();
+      .json()
+      .catch((err) => {
+        console.error(
+          "[ERROR]",
+          `PATCH /relations/${collection}/${relation.field}`,
+          { meta: relation.meta }
+        );
+        console.error("[ERROR]", err.message);
+        console.error(
+          "[ERROR] response:",
+          JSON.stringify(JSON.parse(err.response.body), null, 2)
+        );
+        process.exit(1);
+      });
   }
 }

@@ -42,7 +42,7 @@ export interface DirectusFieldMeta {
   id: number;
   collection: string;
   field: string;
-  special: string;
+  special: string | string[];
   interface: string;
   options: unknown;
   display: string;

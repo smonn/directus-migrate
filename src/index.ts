@@ -6,7 +6,7 @@ import fs from "fs";
 import inquirer from "inquirer";
 import path from "path";
 import { DirectusClient, DirectusClientOptions } from "./directus/client";
-import { DirectusCollection } from "./directus/types";
+import { DirectusCollection, DirectusField } from "./directus/types";
 
 export interface Configuration {
   dry?: boolean;
@@ -168,8 +168,9 @@ async function main(args: string[]) {
   }
 
   for (const collection of addedCollections) {
-    const fields = await source.getFields(collection.collection, true);
     if (!config.dry) {
+      // Grab the primary key field
+      const fields = await source.getFields(collection.collection, true);
       await target.createCollection({
         ...collection,
         fields,
