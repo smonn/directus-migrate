@@ -170,7 +170,35 @@ async function main(args: string[]) {
   for (const collection of addedCollections) {
     if (!config.dry) {
       // Grab the primary key field
-      const fields = await source.getFields(collection.collection, true);
+      const [idField] = await source.getFields(collection.collection, true);
+      const fields: DirectusField[] = [];
+      if (idField.type === "uuid") {
+        fields.push({
+          field: idField.field,
+          type: "uuid",
+          meta: {
+            hidden: true,
+            readonly: true,
+            interface: "input",
+            special: ["uuid"],
+          },
+          schema: {
+            is_primary_key: true,
+            length: 36,
+            has_auto_increment: false,
+          },
+        });
+      } else if (idField.type === "integer") {
+        fields.push({
+          field: idField.field,
+          type: "integer",
+          meta: { hidden: true, interface: "input", readonly: true },
+          schema: { is_primary_key: true, has_auto_increment: true },
+        });
+      } else {
+        fields.push(idField);
+      }
+
       await target.createCollection({
         ...collection,
         fields,
